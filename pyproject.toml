@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "maillog"
+version = "0.1"
+description = "Simple python mail logging library."
+authors = ["virtu <virtu@21.ninja>"]
+license = "MIT"
+readme = "README.md"
+
+packages = [
+  { include = "maillog", from="src" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+maillogd = "maillog.cli.maillogd:main"
+maillog-cli = "maillog.cli.maillog_cli:main"
