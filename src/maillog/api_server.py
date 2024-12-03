@@ -22,6 +22,10 @@ class APIServer(threading.Thread):
     SOCKET_READ_SIZE: ClassVar[int] = 4096
     SOCKET_PATH: ClassVar[str] = "/run/maillog/server_socket"
 
+    def __post_init__(self):
+        """Initialize the parent class."""
+        super().__init__(name=self.__class__.__name__)
+
     def run(self):
         """
         Start the API server.

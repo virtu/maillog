@@ -24,37 +24,37 @@ class Message:
 class MessageBuffer:
     """Buffer for storing log messages."""
 
-    lock: threading.Lock = threading.Lock()
-    data: List = field(init=False)
+    _lock: threading.Lock = threading.Lock()
+    _data: List = field(init=False)
     BUFFER: ClassVar[str] = "/run/maillog/message_buffer.json"
 
     def __post_init__(self):
         """Try to load buffered data from file."""
         buffer_path = Path(self.BUFFER)
         if not buffer_path.exists():
-            self.data = []
+            self._data = []
         with buffer_path.open("r", encoding="UTF-8") as f:
-            self.data = json.load(f)
-            log.info("Read %d messages from disk (%s)", len(self.data), self.BUFFER)
+            self._data = json.load(f)
+            log.info("Read %d messages from disk (%s)", len(self._data), self.BUFFER)
 
-    def persist(self):
+    def _persist(self):
         """Persist buffer to disk."""
         with open(self.BUFFER, "w", encoding="UTF-8") as f:
-            json.dump(self.data, f)
+            json.dump(self._data, f)
 
     def insert(self, message: Message):
         """Add a message to the buffer and persist buffer to disk."""
-        with self.lock:
-            self.data.append(message)
-            self.persist()
+        with self._lock:
+            self._data.append(message)
+            self._persist()
 
-    def get_all(self):
+    def get_all_messages(self):
         """Get all messages from the buffer."""
-        with self.lock:
-            return self.data
+        with self._lock:
+            return self._data
 
     def clear(self):
         """Clear the buffer and persist to disk."""
-        with self.lock:
-            self.data = []
-            self.persist()
+        with self._lock:
+            self._data = []
+            self._persist()
