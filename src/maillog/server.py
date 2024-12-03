@@ -10,9 +10,11 @@ import time
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
+from typing import ClassVar
 
 from maillog.cli.maillogd import Config
 from maillog.message import Message, MessageBuffer
+from maillog.requests import ClientRequestHandler
 
 
 @dataclass
@@ -60,13 +62,18 @@ class MailLogServer(threading.Thread):
     conf: Config
     server_socket: socket.socket = field(init=False)
     buffer: MessageBuffer = MessageBuffer()
+    request_handler: ClientRequestHandler = ClientRequestHandler(buffer)
     SOCKET: ClassVar[str] = "/run/maillog/server_socket"
 
     def __post_init__(self):
         super().__init__(name=self.__class__.__name__)
 
     def run(self):
+        """Run the mail log server."""
         log.info("Started %s thread.", self.__class__.__name__)
+        self.start_summary_mail_scheduler_thread()
+        self.start_api_server_thread()
+
         self.setup_socket()
 
         while True:
@@ -88,96 +95,6 @@ class MailLogServer(threading.Thread):
         self.server_socket.bind(self.SOCKET)
         os.chmod(self.SOCKET, 0o666)
         log.debug("Created socket (%s)", self.SOCKET)
-
-    def send_summary_email(self):
-        content = ""
-        for process_key, messages in self.message_buffer.items():
-            content += f"Process: {process_key}\n"
-            for msg in messages:
-                timestamp = msg["timestamp"]
-                log_level = msg["log_level"]
-                message = msg["msg"]
-                content += f"[{timestamp}] [{log_level}] {message}\n"
-            content += "\n"
-        subject = f"maillog: daily log from {self.hostname} for {datetime.date.today().isoformat()}"
-        self.send_email(subject, content)
-
-    def send_email(self, subject, content):
-        msg = MIMEText(content)
-        msg["Subject"] = subject
-        msg["From"] = self.email_credentials["from_address"]
-        msg["To"] = self.email_credentials["to_address"]
-
-        try:
-            with smtplib.SMTP(
-                self.email_credentials["smtp_server"],
-                self.email_credentials["smtp_port"],
-            ) as server:
-                server.starttls()
-                server.login(
-                    self.email_credentials["username"],
-                    self.email_credentials["password"],
-                )
-                server.send_message(msg)
-        except Exception as e:
-            logging.error(f"Failed to send email: {e}")
-
-    def handle_client_request(self, client_socket):
-        """Handle incoming client requests."""
-        try:
-            data = ""
-            while True:
-                chunk = client_socket.recv(4096)
-                if not chunk:
-                    break
-                data += chunk.decode("utf-8")
-            if data:
-                request = json.loads(data)
-                action = request.get("action")
-                if action == "send":
-                    self.handle_send(request, client_socket)
-                elif action == "status":
-                    self.handle_status(client_socket)
-                else:
-                    log.warning("Unknown action: %s", action)
-        finally:
-            client_socket.close()
-
-    def handle_send(self, request, client_socket):
-        """Handle send request from client."""
-
-        timestamp = dt.datetime.now(dt.timezone.utc)
-        msg = request.get("msg")
-        immediate = request.get("immediate", False)
-        log_level = request.get("log_level", "warning")
-        process_name = request.get("process_name", "unknown")
-        process_id = request.get("process_id", "unknown")
-
-        log_func = getattr(log, log_level, log.warning)
-        log_func(f"[{process_name}][{process_id}] {msg} (logging from maillog)")
-
-        message = Message(
-            timestamp=timestamp,
-            process_name=process_name,
-            process_id=process_id,
-            message=msg,
-            log_level=log_level,
-        )
-
-        if immediate:
-            raise NotImplementedError("Immediate sending not implemented yet.")
-            # subject = f"maillog: urgent message from {process_name} on {self.hostname}"
-            # content = f"[{timestamp}] [{log_level}] {msg}\nProcess: {process_name}\nPID: {process_id}"
-            # self.send_email(subject, content)
-        else:
-            self.buffer.insert(message)
-
-        client_socket.sendall(json.dumps({"status": "ok"}).encode("utf-8"))
-
-    def handle_status(self, client_socket):
-        with self.buffer_lock:
-            response = {"buffer": self.message_buffer}
-        client_socket.sendall(json.dumps(response).encode("utf-8"))
 
     def serve_forever(self):
         try:
