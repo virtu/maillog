@@ -39,12 +39,6 @@ class APIServer(threading.Thread):
         This function is called by the Threading class's start method.
         """
         log.info("Started %s thread.", self.__class__.__name__)
-
-        self.setup_socket()
-        self.server_loop()
-
-    def server_loop(self):
-        """Listen for incoming client requests."""
         try:
             while True:
                 client_socket, _ = self.api_socket.accept()
