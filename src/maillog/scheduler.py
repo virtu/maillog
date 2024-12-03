@@ -7,7 +7,7 @@ import time
 from dataclasses import dataclass
 from functools import cached_property
 
-from maillog.cli.maillogd import Config
+from maillog.message import MessageBuffer
 
 
 @dataclass
@@ -53,7 +53,8 @@ class MailScheduler(threading.Thread):
     """Scheduler for sending daily summary emails."""
 
     # mailer: Mailer
-    conf: Config
+    # conf: Config
+    schedule: dt.time
     buffer: MessageBuffer
 
     def __post_init__(self):
@@ -70,7 +71,7 @@ class MailScheduler(threading.Thread):
         log.info("Started %s thread.", self.__class__.__name__)
 
         while True:
-            target = NextMailTarget.get(self.conf.schedule)
+            target = NextMailTarget.get(self.schedule)
             log.info(
                 "Sleeping for %s until %s", target.delta_string, target.time_string
             )

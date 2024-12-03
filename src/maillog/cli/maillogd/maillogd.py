@@ -2,14 +2,17 @@
 
 import logging as log
 import time
+from dataclasses import dataclass, field
 
-from maillog.server import MailLogServer
+from maillog.api_server import APIServer
+from maillog.message import MessageBuffer
+from maillog.scheduler import MailScheduler
 
 from .config import get_config
 
 
 def main():
-    """Parse command-line arguments, set up logging, and run darkseed daemon."""
+    """Parse command-line arguments, set up logging, and run maillog daemon."""
 
     conf = get_config()
     log.basicConfig(
@@ -20,8 +23,12 @@ def main():
     log.Formatter.converter = time.gmtime
     log.info("Using configuration: %s", conf)
 
-    maillog_server = MailLogServer(conf)
-    maillog_server.start()
+    buffer = MessageBuffer()
+    api_server = APIServer(buffer)
+    mail_scheduler = MailScheduler(conf.schedule, buffer)
+    # TODO: add log statements to run functions
+    api_server.start()
+    mail_scheduler.start()
 
 
 if __name__ == "__main__":

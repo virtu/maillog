@@ -32,6 +32,8 @@ class APIServer(threading.Thread):
 
         This function is called by the Threading class's start method.
         """
+        log.info("Started %s thread.", self.__class__.__name__)
+
         self.setup_socket()
         self.server_loop()
 
@@ -118,5 +120,5 @@ class APIServer(threading.Thread):
         Since grouping and formatting messages is handled by the client, the
         server can simply return the buffered messages.
         """
-        response = self.buffer.get_all()
+        response = self.buffer.get_all_messages()
         client_socket.sendall(json.dumps(response).encode("utf-8"))
