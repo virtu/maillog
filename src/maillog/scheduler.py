@@ -48,7 +48,7 @@ class NextMailTarget:
         return cls(target, delta)
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class MailScheduler(threading.Thread):
     """Scheduler for sending daily summary emails."""
 
@@ -57,8 +57,11 @@ class MailScheduler(threading.Thread):
     schedule: dt.time
     buffer: MessageBuffer
 
+    def __hash__(self):
+        """Class must be hashable for threading.Thread."""
+        return hash(self.schedule)
+
     def __post_init__(self):
-        # TODO: TEST IF THIS IS REALLY NECESSARY
         """Initialize the parent class."""
         super().__init__(name=self.__class__.__name__)
 

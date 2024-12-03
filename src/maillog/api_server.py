@@ -13,17 +13,23 @@ from typing import ClassVar
 from maillog.message import Message, MessageBuffer
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class APIServer(threading.Thread):
     """Handlers for client requests."""
 
     buffer: MessageBuffer
     api_socket: socket.socket = field(init=False)
     SOCKET_READ_SIZE: ClassVar[int] = 4096
-    SOCKET_PATH: ClassVar[str] = "/run/maillog/server_socket"
+    # SOCKET_PATH: ClassVar[str] = "/run/maillog/server_socket"
+    SOCKET_PATH: ClassVar[str] = "server_socket"
+
+    def __hash__(self):
+        """Class must be hashable for threading.Thread."""
+        return hash(self.api_socket)
 
     def __post_init__(self):
         """Initialize the parent class."""
+        self.api_socket = self.setup_socket()
         super().__init__(name=self.__class__.__name__)
 
     def run(self):
@@ -50,16 +56,19 @@ class APIServer(threading.Thread):
             if os.path.exists(self.SOCKET_PATH):
                 os.remove(self.SOCKET_PATH)
 
-    def setup_socket(self):
+    @staticmethod
+    def setup_socket():
         """Set up the API socket."""
-        socket_path = Path(self.SOCKET_PATH)
+        socket_path = Path(APIServer.SOCKET_PATH)
         if socket_path.exists():
-            log.debug("Removed existing socket (%s)", self.SOCKET_PATH)
+            log.debug("Removed existing socket (%s)", APIServer.SOCKET_PATH)
             socket_path.unlink()
-        self.api_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.api_socket.bind(self.SOCKET_PATH)
-        os.chmod(self.SOCKET_PATH, 0o666)
-        log.debug("Created socket (%s)", self.SOCKET_PATH)
+        api_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        api_socket.bind(APIServer.SOCKET_PATH)
+        os.chmod(APIServer.SOCKET_PATH, 0o666)
+        log.debug("Created socket (%s)", APIServer.SOCKET_PATH)
+        api_socket.listen()
+        return api_socket
 
     def handle_client_request(self, client_socket: socket.socket):
         """Handle incoming client requests."""
