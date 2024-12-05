@@ -1,56 +1,20 @@
 """Maillog command-line tool."""
 
 import argparse
+import datetime as dt
 import json
 import logging as log
 import os
 import socket
 import sys
+from dataclasses import asdict
 
-from maillog.api_server import APIServer
+from maillog.api import APISocket
+from maillog.message import Message
 
-from .config import get_config
+# from .config import get_config
 
 # maillog/cli.py
-
-
-def send(msg, immediate=False, log_level="warning"):
-    """Send message to API server."""
-    data = {
-        "action": "send",
-        "msg": msg,
-        "immediate": immediate,
-        "log_level": log_level,
-        "process_name": os.path.basename(sys.argv[0]),
-        "process_id": os.getpid(),
-    }
-    _send_request(data)
-
-
-def get_status():
-    """Get status of API server."""
-    data = {"action": "status"}
-    return _send_request(data)
-
-
-def _send_request(data):
-    client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    try:
-        client_socket.connect(APIServer.SOCKET_PATH)
-        client_socket.sendall(json.dumps(data).encode("utf-8"))
-        response = ""
-        while True:
-            chunk = client_socket.recv(4096)
-            if not chunk:
-                break
-            response += chunk.decode("utf-8")
-        return json.loads(response)
-    except FileNotFoundError as e:
-        raise ConnectionError(
-            f"Cannot connect to maillog daemon at {APIServer.SOCKET_PATH}"
-        ) from e
-    finally:
-        client_socket.close()
 
 
 def main():
@@ -69,11 +33,29 @@ def main():
 
     args = parser.parse_args()
 
+    log_level = "DEBUG"
+
+    log.basicConfig(
+        # level=conf.log_level,
+        level=log_level,
+        format="%(asctime)s | %(levelname)-8s | %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%SZ",
+    )
+
+    api_socket = APISocket.connect()
     if args.command == "send":
-        send(args.message, immediate=args.immediate, log_level=args.log_level)
-        print("Message sent.")
+        message = Message(
+            message=args.message,
+            log_level=args.log_level,
+            immediate=args.immediate,
+        )
+        api_socket.send(asdict(message))
+        reply = api_socket.receive()
+        print(json.dumps(reply, indent=2))
     elif args.command == "status":
-        status = get_status()
+        data = {"action": "status"}
+        api_socket.send(data)
+        status = api_socket.receive()
         print(json.dumps(status, indent=2))
     else:
         parser.print_help()

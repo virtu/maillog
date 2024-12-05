@@ -3,10 +3,9 @@
 import datetime as dt
 import json
 import logging as log
-import os
 import socket
 import threading
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from maillog.message import Message, MessageBuffer
 
@@ -18,14 +17,15 @@ class APIServer(threading.Thread):
     """Handlers for client requests."""
 
     buffer: MessageBuffer
-    api_socket: APISocket = APISocket.listen()
+    api_socket: APISocket = field(init=False)
 
     def __hash__(self):
         """Class must be hashable for threading.Thread."""
-        return hash(self.api_socket)
+        return hash(self.__class__.__name__)
 
     def __post_init__(self):
         """Initialize the parent class."""
+        self.api_socket = APISocket.listen()
         super().__init__(name=self.__class__.__name__)
 
     def run(self):
@@ -50,31 +50,33 @@ class APIServer(threading.Thread):
             action = msg.get("action")
             if action == "send":
                 log.debug("Received send request.")
-                # self.handle_send(request, client_socket)
+                self.handle_send(request, client_socket)
             elif action == "status":
                 log.debug("Received status request.")
-                # self.handle_status(client_socket)
+                self.handle_status(client_socket)
             else:
                 log.warning("Unknown action: %s", action)
         finally:
             client_socket.close()
 
-    def handle_send(self, request: dict, client_socket: socket.socket):
+    def handle_send(self, request: dict, client_socket: APISocket):
         """Handle send request from client."""
-        timestamp = dt.datetime.now(dt.timezone.utc)
-        msg = str(request.get("msg"))
-        immediate = request.get("immediate", False)
-        log_level = request.get("log_level", "warning")
-        process_name = request.get("process_name", "unknown")
-        process_id = request.get("process_id", "unknown")
+        msg = str(request.get("message"))
+        immediate = request.get("immediate")
+        log_level = request.get("log_level")
+        assert isinstance(log_level, str)
+        process_name = request.get("process_name")
+        process_id = request.get("process_id")
 
-        log_func = getattr(log, log_level, log.warning)
+        log.debug("Received message: %d", requests)
+
+        log_func = getattr(log, log_level)
         log_func(f"[{process_name}][{process_id}] {msg} (logging from maillog)")
 
         message = Message(
-            timestamp=timestamp,
-            process_name=process_name,
-            process_id=process_id,
+            # timestamp=timestamp,
+            # process_name=process_name,
+            # process_id=process_id,
             message=msg,
             log_level=log_level,
         )
@@ -89,7 +91,7 @@ class APIServer(threading.Thread):
 
         client_socket.sendall(json.dumps({"status": "ok"}).encode("utf-8"))
 
-    def handle_status(self, client_socket: socket.socket):
+    def handle_status(self, client_socket: APISocket):
         """
         Handle status request from client.
 
@@ -97,4 +99,4 @@ class APIServer(threading.Thread):
         server can simply return the buffered messages.
         """
         response = self.buffer.get_all_messages()
-        client_socket.sendall(json.dumps(response).encode("utf-8"))
+        client_socket.send({"status": response})
