@@ -2,9 +2,8 @@
 
 import logging as log
 import time
-from dataclasses import dataclass, field
 
-from maillog.api_server import APIServer
+from maillog.api import APIServer
 from maillog.message import MessageBuffer
 from maillog.scheduler import MailScheduler
 
@@ -26,7 +25,6 @@ def main():
     buffer = MessageBuffer()
     api_server = APIServer(buffer)
     mail_scheduler = MailScheduler(conf.schedule, buffer)
-    # TODO: add log statements to run functions
     api_server.start()
     mail_scheduler.start()
 
