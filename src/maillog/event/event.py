@@ -8,7 +8,7 @@ import sys
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import ClassVar, List
+from typing import ClassVar
 
 
 @dataclass
@@ -39,7 +39,7 @@ class EventBuffer:
     """Buffer for storing log messages."""
 
     _lock: threading.Lock = threading.Lock()
-    _event_buffer: List = field(init=False)
+    _event_buffer: list = field(init=False)
     # TODO: revert to "/run/maillog/message_buffer.json"
     BUFFER_FILE: ClassVar[Path] = Path("message_buffer.json")
 
