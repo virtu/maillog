@@ -12,13 +12,13 @@ from typing import ClassVar, List
 
 
 @dataclass
-class Message:
+class MaillogEvent:
     """
-    Class representing log messages.
+    Class representing a maillog event.
 
     Process name and id don't change, so they can be set once and shared across
-    all instances. Timestamp is set for each instance individually, so it uses
-    a default_factory.
+    all instances. Timestamp is set for each instance individually, so a
+    default_factory is necessary.
     """
 
     message: str
@@ -35,42 +35,45 @@ class Message:
 
 
 @dataclass
-class MessageBuffer:
+class EventBuffer:
     """Buffer for storing log messages."""
 
     _lock: threading.Lock = threading.Lock()
-    _data: List = field(init=False)
-    # BUFFER: ClassVar[str] = "/run/maillog/message_buffer.json"
-    BUFFER: ClassVar[str] = "message_buffer.json"
+    _event_buffer: List = field(init=False)
+    # TODO: revert to "/run/maillog/message_buffer.json"
+    BUFFER_FILE: ClassVar[Path] = Path("message_buffer.json")
 
     def __post_init__(self):
-        """Try to load buffered data from file."""
-        buffer_path = Path(self.BUFFER)
-        if not buffer_path.exists():
+        """Initialize event buffer from file if it exists."""
+        if not self.BUFFER_FILE.exists():
             self._data = []
             return
-        with buffer_path.open("r", encoding="UTF-8") as f:
+        with self.BUFFER_FILE.open("r", encoding="UTF-8") as f:
             self._data = json.load(f)
-            log.info("Read %d messages from disk (%s)", len(self._data), self.BUFFER)
+            log.info(
+                "Restored %d message(s) from file (%s)",
+                len(self._event_buffer),
+                self.BUFFER_FILE,
+            )
 
     def _persist(self):
         """Persist buffer to disk."""
-        with open(self.BUFFER, "w", encoding="UTF-8") as f:
-            json.dump(self._data, f)
+        with open(self.BUFFER_FILE, "w", encoding="UTF-8") as f:
+            json.dump(self._event_buffer, f)
 
-    def insert(self, message: Message):
+    def insert(self, event: MaillogEvent):
         """Add a message to the buffer and persist buffer to disk."""
         with self._lock:
-            self._data.append(message)
+            self._event_buffer.append(event)
             self._persist()
 
     def get_all_messages(self):
         """Get all messages from the buffer."""
         with self._lock:
-            return self._data
+            return self._event_buffer
 
     def clear(self):
         """Clear the buffer and persist to disk."""
         with self._lock:
-            self._data = []
+            self._event_buffer = []
             self._persist()
