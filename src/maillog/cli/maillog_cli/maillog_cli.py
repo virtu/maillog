@@ -1,16 +1,9 @@
 """Maillog command-line tool."""
 
 import argparse
-import datetime as dt
-import json
 import logging as log
-import os
-import socket
-import sys
-from dataclasses import asdict
 
-from maillog.api import APISocket
-from maillog.message import Message
+import maillog
 
 # from .config import get_config
 
@@ -24,9 +17,6 @@ def main():
 
     send_parser = subparsers.add_parser("send", help="Send a message")
     send_parser.add_argument("message", help="Message to send")
-    send_parser.add_argument(
-        "--immediate", action="store_true", help="Send email immediately"
-    )
     send_parser.add_argument("--log-level", default="warning", help="Log level")
 
     status_parser = subparsers.add_parser("status", help="Get buffered messages")
@@ -42,21 +32,16 @@ def main():
         datefmt="%Y-%m-%dT%H:%M:%SZ",
     )
 
-    api_socket = APISocket.connect()
     if args.command == "send":
-        message = Message(
-            message=args.message,
-            log_level=args.log_level,
-            immediate=args.immediate,
-        )
-        api_socket.send(asdict(message))
-        reply = api_socket.receive()
-        print(json.dumps(reply, indent=2))
-    elif args.command == "status":
-        data = {"action": "status"}
-        api_socket.send(data)
-        status = api_socket.receive()
-        print(json.dumps(status, indent=2))
+        if args.log_level == "warning":
+            maillog.warning(args.message)
+        # elif args.log_level == "error":
+        #     error(args.message)
+        else:
+            log.error("Invalid log level: %s", args.log_level)
+    # elif args.command == "status":
+    #     status = get_status()
+    #     print(f"status: {status}")
     else:
         parser.print_help()
 

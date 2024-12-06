@@ -22,7 +22,6 @@ class MaillogEvent:
     """
 
     message: str
-    immediate: bool
     log_level: str
     process_name: str = field(init=False, default=os.path.basename(sys.argv[0]))
     process_id: int = field(init=False, default=os.getpid())

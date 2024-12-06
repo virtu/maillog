@@ -7,7 +7,7 @@ import time
 from dataclasses import dataclass
 from functools import cached_property
 
-from maillog.message import MessageBuffer
+from maillog.event import EventBuffer
 
 
 @dataclass
@@ -55,7 +55,7 @@ class MailScheduler(threading.Thread):
     # mailer: Mailer
     # conf: Config
     schedule: dt.time
-    buffer: MessageBuffer
+    buffer: EventBuffer
 
     def __hash__(self):
         """Class must be hashable for threading.Thread."""

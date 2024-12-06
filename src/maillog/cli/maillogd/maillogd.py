@@ -4,7 +4,7 @@ import logging as log
 import time
 
 from maillog.api import APIServer
-from maillog.message import MessageBuffer
+from maillog.event import EventBuffer
 from maillog.scheduler import MailScheduler
 
 from .config import get_config
@@ -22,7 +22,7 @@ def main():
     log.Formatter.converter = time.gmtime
     log.info("Using configuration: %s", conf)
 
-    buffer = MessageBuffer()
+    buffer = EventBuffer()
     api_server = APIServer(buffer)
     mail_scheduler = MailScheduler(conf.schedule, buffer)
     api_server.start()

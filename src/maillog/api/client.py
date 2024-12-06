@@ -2,18 +2,35 @@
 
 import logging as log
 
+from maillog.event import MaillogEvent
 
-def info(message: str):
+from .messages import APISubmitEventRequest
+from .socket import APISocket
+
+
+def info(msg: str):
     """Log message via regular logging framework and maillog using info level."""
-    log.info(message)
-    _send(message, "INFO")
+    log.info(msg)
+    _send(msg, "INFO")
 
 
-def _send(messsage: str, log_level: str):
-    """
-    Send message to maillog server.
+def warning(msg: str):
+    """Log message via regular logging framework and maillog using warning level."""
+    log.warning(msg)
+    _send(msg, "WARNING")
 
-    Create MaillogMessage object, then send it to the maillog server API.
-    """
 
-    maillog_message = MaillogMessage(message, log_level)
+def error(message: str):
+    """Log message via regular logging framework and maillog using warning level."""
+    log.warning(message)
+    _send(message, "WARNING")
+
+
+def _send(msg: str, log_level: str):
+    """Create log event from message and send to maillog server."""
+
+    event = MaillogEvent(msg, log_level)
+    request = APISubmitEventRequest(event)
+    api_socket = APISocket.connect()
+    api_socket.send(request)
+    # TODO: wait for response
