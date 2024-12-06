@@ -1,4 +1,4 @@
-"""Module defining API call interface."""
+"""Module implementing API client interface."""
 
 import logging as log
 
