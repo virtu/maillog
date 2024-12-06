@@ -1,6 +1,13 @@
 """API module."""
 
+from .messages import (APIGetStatusRequest, APIGetStatusResponse,
+                       APISubmitEventRequest, APISubmitEventResponse)
 from .server import APIServer
-from .socket import APISocket
 
-__all__ = ["APIServer", "APISocket"]
+__all__ = [
+    "APIServer",
+    "APIGetStatusRequest",
+    "APIGetStatusResponse",
+    "APISubmitEventRequest",
+    "APISubmitEventResponse",
+]

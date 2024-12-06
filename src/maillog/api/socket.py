@@ -1,6 +1,5 @@
 """Maillog functionality for handling client requests."""
 
-import json
 import logging as log
 import os
 import socket
@@ -8,15 +7,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar
 
+from .messages import APIMessage
+
 
 @dataclass
 class APISocket:
     """High-level API server class implementing low-level socket handling."""
 
     _socket: socket.socket
-    # SOCKET_PATH: ClassVar[str] = "/run/maillog/server_socket"
+    # TODO: Revert to "/run/maillog/server_socket"
     SOCKET_PATH: ClassVar[str] = "server_socket"
-    MSG_LEN_PFX_SIZE: ClassVar[int] = 4  # size of message length prefix
 
     @classmethod
     def connect(cls):
@@ -48,30 +48,22 @@ class APISocket:
         """Close socket."""
         self._socket.close()
 
-    def send(self, data: dict):
-        """
-        Send data to the API socket.
+    def send(self, message: APIMessage):
+        """Send API message to the API socket."""
+        self._socket.sendall(message.to_frame())
 
-        Convert JSON data to bytes, then calculate message length. Finally,
-        send message length as prefix followed by message.
-        """
-        msg = json.dumps(data)
-        msg_bytes = msg.encode("utf-8")
-        msg_len = len(msg_bytes)
-        msg_len_bytes = msg_len.to_bytes(self.MSG_LEN_PFX_SIZE, "big")
-        log.debug("Sending message (msg=%s, len=%s)", msg, msg_len)
-        self._socket.sendall(msg_len_bytes + msg_bytes)
-
-    def receive(self) -> dict:
+    def receive(self) -> APIMessage:
         """
         Receive data from API socket.
 
-        Read message length prefix, then read message. Return decoded message.
+        Read frame prefix, then read appropriate amount of bytes to get entire
+        payload of the frame. Create APIMessage from payload and return
+        message.
         """
-        msg_len_bytes = self._socket.recv(self.MSG_LEN_PFX_SIZE)
-        msg_len = int.from_bytes(msg_len_bytes, "big")
-        log.debug("Received message length: %s byte(s)", msg_len)
-        msg_bytes = self._socket.recv(msg_len)
-        msg = json.loads(msg_bytes.decode("utf-8"))
+        pfx_bytes = self._socket.recv(APIMessage.FRAME_PREFIX_LENGTH)
+        pfx = int.from_bytes(pfx_bytes, "big")
+        log.debug("Frame payload length per prefix: %s byte(s)", pfx)
+        payload = self._socket.recv(pfx)
+        msg = APIMessage.from_payload(payload)
         log.debug("Received message: %s", msg)
         return msg
