@@ -59,7 +59,6 @@ class MailScheduler(threading.Thread):
     email_config: EmailConfig
     mailer: Mailer = field(init=False)
     schedule: dt.time
-    buffer: EventBuffer
 
     def __hash__(self):
         """Class must be hashable for threading.Thread."""
@@ -94,7 +93,14 @@ class MailScheduler(threading.Thread):
         """Format and send summary email."""
         hostname = socket.gethostname()
         subject = f"Maillog summary for {hostname} on {dt.datetime.now(dt.timezone.utc).date()}"
-        events = self.buffer.get_all_events()
+        with EventBuffer() as buf:
+            events = buf.get_all_events()
         body = EventFormatter.pretty_print(events)
-        self.mailer.send(subject, body)
-        log.info("Sent summary email.")
+        try:
+            self.mailer.send(subject, body)
+            log.info("Sent summary email.")
+            with EventBuffer() as buf:
+                buf.clear()
+            log.debug("Cleared event buffer.")
+        except Exception as e:  # pylint: disable=broad-except
+            log.error("Error sending summary mail: %s", e)

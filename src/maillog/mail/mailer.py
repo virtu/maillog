@@ -22,22 +22,13 @@ class Mailer:
         message["To"] = self.config.to
         message["Subject"] = subject
 
-        try:
-            with smtplib.SMTP(self.config.server, self.config.port) as server:
-                server.starttls()
-                server.login(self.config.username, self.config.password)
-                server.sendmail(self.config.from_, self.config.to, message.as_string())
-                log.info(
-                    "Email sent successfully (from=%s, to=%s, subject=%s)",
-                    self.config.from_,
-                    self.config.to,
-                    subject,
-                )
-        except Exception as e:  # pylint: disable=broad-except
-            log.error(
-                "Error sending email (from=%s, to=%s, subject=%s): %s",
+        with smtplib.SMTP(self.config.server, self.config.port) as server:
+            server.starttls()
+            server.login(self.config.username, self.config.password)
+            server.sendmail(self.config.from_, self.config.to, message.as_string())
+            log.info(
+                "Email sent successfully (from=%s, to=%s, subject=%s)",
                 self.config.from_,
                 self.config.to,
                 subject,
-                e,
             )
