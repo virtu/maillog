@@ -43,8 +43,8 @@ class EventBuffer:
             self._event_buffer.append(event)
             self._persist()
 
-    def get_all_messages(self):
-        """Get all messages from the buffer."""
+    def get_all_events(self):
+        """Get all events from the buffer."""
         with self._lock:
             return self._event_buffer
 

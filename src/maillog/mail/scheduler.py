@@ -2,12 +2,16 @@
 
 import datetime as dt
 import logging as log
+import socket
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 
-from maillog.event import EventBuffer
+from maillog.cli.maillogd import EmailConfig
+from maillog.event import EventBuffer, EventFormatter
+
+from .mailer import Mailer
 
 
 @dataclass
@@ -52,8 +56,8 @@ class NextMailTarget:
 class MailScheduler(threading.Thread):
     """Scheduler for sending daily summary emails."""
 
-    # mailer: Mailer
-    # conf: Config
+    email_config: EmailConfig
+    mailer: Mailer = field(init=False)
     schedule: dt.time
     buffer: EventBuffer
 
@@ -62,8 +66,9 @@ class MailScheduler(threading.Thread):
         return hash(self.schedule)
 
     def __post_init__(self):
-        """Initialize the parent class."""
+        """Initialize the parent class and the mailer."""
         super().__init__(name=self.__class__.__name__)
+        self.mailer = Mailer(self.email_config)
 
     def run(self):
         """
@@ -81,5 +86,15 @@ class MailScheduler(threading.Thread):
             time.sleep(target.delta_seconds)
             now = dt.datetime.now(dt.timezone.utc)
             log.info("Woke up at %s", now.strftime("%Y-%m-%dT%H:%M:%SZ"))
-            log.info("This is where I would send the summary email.")
-            # make sure to use lock? shouldn't have to. all locking should go into buffer
+            log.info("Sending summary mail...")
+            self.send_summary_mail()
+            log.info("Done.")
+
+    def send_summary_mail(self):
+        """Format and send summary email."""
+        hostname = socket.gethostname()
+        subject = f"Maillog summary for {hostname} on {dt.datetime.now(dt.timezone.utc).date()}"
+        events = self.buffer.get_all_events()
+        body = EventFormatter.pretty_print(events)
+        self.mailer.send(subject, body)
+        log.info("Sent summary email.")
