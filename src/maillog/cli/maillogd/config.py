@@ -110,7 +110,11 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--from", type=str, required=True, help="Sender address for emails."
+        "--from",
+        type=str,
+        dest="from_",
+        required=True,
+        help="Sender address for emails.",
     )
 
     parser.add_argument(

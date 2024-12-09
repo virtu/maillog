@@ -5,7 +5,7 @@ import time
 
 from maillog.api import APIServer
 from maillog.event import EventBuffer
-from maillog.scheduler import MailScheduler
+from maillog.mail import MailScheduler
 
 from .config import get_config
 
@@ -24,7 +24,7 @@ def main():
 
     buffer = EventBuffer()
     api_server = APIServer(buffer)
-    mail_scheduler = MailScheduler(conf.schedule, buffer)
+    mail_scheduler = MailScheduler(conf.email, conf.schedule, buffer)
     api_server.start()
     mail_scheduler.start()
 

@@ -4,6 +4,7 @@ import argparse
 import logging as log
 
 import maillog
+from maillog.api.client import get_status
 
 # from .config import get_config
 
@@ -39,9 +40,8 @@ def main():
         #     error(args.message)
         else:
             log.error("Invalid log level: %s", args.log_level)
-    # elif args.command == "status":
-    #     status = get_status()
-    #     print(f"status: {status}")
+    elif args.command == "status":
+        get_status()
     else:
         parser.print_help()
 

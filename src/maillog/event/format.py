@@ -1,5 +1,6 @@
 """Module implementing formatter for maillog events."""
 
+import logging as log
 from collections import defaultdict
 from dataclasses import dataclass
 
@@ -30,6 +31,6 @@ class EventFormatter:
         for (pname, pid), event in groups_ordered:
             result += f"{pname} (pid={pid}):\n"
             for e in event:
-                print(f"    {e.timestamp} {e.log_level}: {e.message}\n")
+                result += f"    {e.timestamp} {e.log_level}: {e.message}\n"
             result += "\n"
         return result
