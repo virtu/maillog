@@ -15,9 +15,9 @@ class EmailConfig:
     """Email configuration."""
 
     to: str  # recipient address
-    sender: str  # sender address
+    from_: str  # sender address
     server: str  # smtp server hostname
-    port: str  # smtp server port
+    port: int  # smtp server port
     username: str  # smtp server username
     password: str  # smtp server password
 
@@ -39,7 +39,7 @@ class EmailConfig:
         password = EmailConfig.read_password(args.password_file)
         return cls(
             to=args.to,
-            sender=args.sender,
+            from_=args.from_,
             server=args.server,
             port=args.port,
             username=args.username,
@@ -54,7 +54,7 @@ class EmailConfig:
         """
 
         return (
-            f"EmailConfig(to={self.to}, sender={self.sender}, server={self.server}, "
+            f"EmailConfig(to={self.to}, from={self.from_}, server={self.server}, "
             f"port={self.port}, username={self.username}, password=********)"
         )
 
@@ -110,7 +110,11 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--sender", type=str, required=True, help="Sender address for emails."
+        "--from",
+        type=str,
+        dest="from_",
+        required=True,
+        help="Sender address for emails.",
     )
 
     parser.add_argument(

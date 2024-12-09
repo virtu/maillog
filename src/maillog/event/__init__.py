@@ -2,5 +2,6 @@
 
 from .buffer import EventBuffer
 from .event import MaillogEvent
+from .format import EventFormatter
 
-__all__ = ["MaillogEvent", "EventBuffer"]
+__all__ = ["MaillogEvent", "EventBuffer", "EventFormatter"]

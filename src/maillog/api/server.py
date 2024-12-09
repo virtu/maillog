@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 
 from maillog.event import EventBuffer
 
-from .messages import APIGetStatusRequest, APISubmitEventRequest
+from . import messages
 from .socket import APISocket
 
 
@@ -45,55 +45,36 @@ class APIServer(threading.Thread):
         try:
             log.debug("Reading APIMessage from socket.")
             msg = client_socket.receive()
-            if isinstance(msg, APISubmitEventRequest):
+            if isinstance(msg, messages.APISubmitEventRequest):
                 log.debug("Received submit request.")
-                # self.handle_send(request, client_socket)
-            elif isinstance(msg, APIGetStatusRequest):
+                self.handle_submit(msg, client_socket)
+            elif isinstance(msg, messages.APIGetStatusRequest):
                 log.debug("Received status request.")
-                # self.handle_status(client_socket)
+                self.handle_status(client_socket)
             else:
                 log.warning("Unsupported API message: %s", msg)
         finally:
             client_socket.close()
 
-    # def handle_send(self, request: dict, client_socket: APISocket):
-    #     """Handle send request from client."""
-    #     msg = str(request.get("message"))
-    #     immediate = request.get("immediate")
-    #     log_level = request.get("log_level")
-    #     assert isinstance(log_level, str)
-    #     process_name = request.get("process_name")
-    #     process_id = request.get("process_id")
-    #
-    #     log.debug("Received message: %d", requests)
-    #
-    #     log_func = getattr(log, log_level)
-    #     log_func(f"[{process_name}][{process_id}] {msg} (logging from maillog)")
-    #
-    #     message = Message(
-    #         # timestamp=timestamp,
-    #         # process_name=process_name,
-    #         # process_id=process_id,
-    #         message=msg,
-    #         log_level=log_level,
-    #     )
-    #
-    #     if immediate:
-    #         print("TODO: implement")
-    #         # subject = f"maillog: urgent message from {process_name} on {self.hostname}"
-    #         # content = f"[{timestamp}] [{log_level}] {msg}\nProcess: {process_name}\nPID: {process_id}"
-    #         # self.send_email(subject, content)
-    #     else:
-    #         self.buffer.insert(message)
-    #
-    #     client_socket.sendall(json.dumps({"status": "ok"}).encode("utf-8"))
+    def handle_submit(
+        self, request: messages.APISubmitEventRequest, client_socket: APISocket
+    ):
+        """Handle send request from client."""
 
-    # def handle_status(self, client_socket: APISocket):
-    #     """
-    #     Handle status request from client.
-    #
-    #     Since grouping and formatting messages is handled by the client, the
-    #     server can simply return the buffered messages.
-    #     """
-    #     response = self.buffer.get_all_messages()
-    #     client_socket.send({"status": response})
+        event = request.event
+        log.debug("Received APISubmitEventRequest with event %s", event)
+        self.event_buffer.insert(event)
+
+        response = messages.APISubmitEventResponse(success=True)
+        client_socket.send(response)
+
+    def handle_status(self, client_socket: APISocket):
+        """
+        Handle status request from client.
+
+        Since grouping and formatting messages is handled by the client, the
+        server can simply return the buffered messages.
+        """
+        events = self.event_buffer.get_all_events()
+        response = messages.APIGetStatusResponse(success=True, events=events)
+        client_socket.send(response)

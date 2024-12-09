@@ -17,12 +17,14 @@ class APISocket:
     _socket: socket.socket
     # TODO: Revert to "/run/maillog/server_socket"
     SOCKET_PATH: ClassVar[str] = "server_socket"
+    SOCKET_TIMEOUT: ClassVar[int] = 5
 
     @classmethod
     def connect(cls):
         """Connect to the API server."""
         api_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         api_socket.connect(cls.SOCKET_PATH)
+        api_socket.settimeout(cls.SOCKET_TIMEOUT)
         return cls(_socket=api_socket)
 
     @classmethod
