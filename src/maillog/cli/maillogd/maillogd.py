@@ -22,9 +22,8 @@ def main():
     log.Formatter.converter = time.gmtime
     log.info("Using configuration: %s", conf)
 
-    buffer = EventBuffer()
-    api_server = APIServer(buffer)
-    mail_scheduler = MailScheduler(conf.email, conf.schedule, buffer)
+    api_server = APIServer()
+    mail_scheduler = MailScheduler(conf.email, conf.schedule)
     api_server.start()
     mail_scheduler.start()
 

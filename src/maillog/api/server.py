@@ -4,8 +4,6 @@ import logging as log
 import threading
 from dataclasses import dataclass, field
 
-from maillog.event import EventBuffer
-
 from .handler import RequestHandler
 from .socket import APISocket
 
@@ -14,7 +12,6 @@ from .socket import APISocket
 class APIServer(threading.Thread):
     """API Server class along with handlers for client requests."""
 
-    event_buffer: EventBuffer
     api_socket: APISocket = field(init=False)
 
     def __hash__(self):
@@ -37,8 +34,5 @@ class APIServer(threading.Thread):
             client_socket = self.api_socket.accept()
             threading.Thread(
                 target=RequestHandler.handle_request,
-                args=(
-                    client_socket,
-                    self.event_buffer,
-                ),
+                args=(client_socket,),
             ).start()
