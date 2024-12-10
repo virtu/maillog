@@ -15,7 +15,8 @@ class APISocket:
     """High-level API server class implementing low-level socket handling."""
 
     _socket: socket.socket
-    SOCKET_PATH: ClassVar[str] = "/run/maillog/server_socket"
+    # TODO: Revert to "/run/maillog/server_socket"
+    SOCKET_PATH: ClassVar[str] = "server_socket"
     SOCKET_TIMEOUT: ClassVar[int] = 5
 
     @classmethod

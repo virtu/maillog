@@ -30,10 +30,8 @@ def main():
     )
 
     if args.command == "event":
-        if args.log_level.lower() == "warning":
+        if args.log_level == "warning":
             maillog.warning(args.message)
-        elif args.log_level.lower() == "error":
-            maillog.error(args.message)
         else:
             log.error("Invalid log level: %s", args.log_level)
     elif args.command == "status":

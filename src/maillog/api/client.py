@@ -22,8 +22,8 @@ def warning(msg: str):
 
 def error(message: str):
     """Log message via regular logging framework and maillog using warning level."""
-    log.error(message)
-    _send(message, "ERROR")
+    log.warning(message)
+    _send(message, "WARNING")
 
 
 def _send(msg: str, log_level: str):
