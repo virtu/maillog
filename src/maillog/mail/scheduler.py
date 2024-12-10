@@ -8,7 +8,7 @@ import time
 from dataclasses import dataclass, field
 from functools import cached_property
 
-from maillog.cli.maillogd import EmailConfig
+from maillog.daemon import EmailConfig
 from maillog.event import EventBuffer, EventFormatter
 
 from .mailer import Mailer

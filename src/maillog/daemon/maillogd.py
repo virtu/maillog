@@ -4,7 +4,6 @@ import logging as log
 import time
 
 from maillog.api import APIServer
-from maillog.event import EventBuffer
 from maillog.mail import MailScheduler
 
 from .config import get_config
