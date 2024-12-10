@@ -55,7 +55,11 @@ in
       { assertion = cfg.passwordFile != null; message = "services.maillog.passwordFile must be set."; }
     ];
 
-    environment.systemPackages = [ flake.packages.${pkgs.stdenv.hostPlatform.system}.maillog-cli ];
+    environment.systemPackages = [
+      (pkgs.python3.withPackages
+        (ps: [ flake.packages.${pkgs.stdenv.hostPlatform.system}.maillog ])
+      )
+    ];
 
     systemd.services.maillog = {
       description = "maillog service";

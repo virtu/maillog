@@ -3,7 +3,7 @@
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     poetry2nix = {
       url = "github:nix-community/poetry2nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -21,18 +21,13 @@
       packages = {
         maillog = mkPoetryApplication {
           projectDir = ./.;
-          mainProgram = "maillogd";
         };
-        maillog-cli = mkPoetryApplication {
-          projectDir = ./.;
-          mainProgram = "maillog-cli";
-        };
-        default = self.packages.${system}.maillogd;
+        default = self.packages.${system}.maillog;
       };
 
       devShells.default = pkgs.mkShell {
         inputsFrom = [ self.packages.${system}.default ];
-        packages = with pkgs; [ poetry ];
+        packages = with pkgs; [ poetry self.packages.${system}.default ];
       };
     });
 }
