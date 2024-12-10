@@ -83,11 +83,10 @@ class MailScheduler(threading.Thread):
                 "Sleeping for %s until %s", target.delta_string, target.time_string
             )
             time.sleep(target.delta_seconds)
-            now = dt.datetime.now(dt.timezone.utc)
-            log.info("Woke up at %s", now.strftime("%Y-%m-%dT%H:%M:%SZ"))
-            log.info("Sending summary mail...")
+            now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            log.debug("Woke up at %s. Trying to send summary mail...", now)
             self.send_summary_mail()
-            log.info("Done.")
+            log.debug("Sent summary email.")
 
     def send_summary_mail(self):
         """Format and send summary email."""
@@ -104,3 +103,4 @@ class MailScheduler(threading.Thread):
             log.debug("Cleared event buffer.")
         except Exception as e:  # pylint: disable=broad-except
             log.error("Error sending summary mail: %s", e)
+        log.info("Sent summary email for %d events.", len(events))

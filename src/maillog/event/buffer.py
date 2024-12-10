@@ -15,8 +15,7 @@ class EventBuffer:
     """Buffer for storing log messages."""
 
     BUFFER_LOCK: ClassVar[threading.Lock] = threading.Lock()
-    # TODO: revert to "/run/maillog/message_buffer.pickle"
-    BUFFER_FILE: ClassVar[Path] = Path("message_buffer.pickle")
+    BUFFER_FILE: ClassVar[Path] = Path("/var/lib/maillog/message_buffer.pickle")
 
     def __enter__(self):
         """Acquire the buffer lock."""
