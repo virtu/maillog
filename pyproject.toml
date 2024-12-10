@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maillog"
-version = "0.1"
+version = "0.2"
 description = "Simple python mail logging library."
 authors = ["virtu <virtu@21.ninja>"]
 license = "MIT"
