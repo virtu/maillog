@@ -26,7 +26,7 @@ class Mailer:
             server.starttls()
             server.login(self.config.username, self.config.password)
             server.sendmail(self.config.from_, self.config.to, message.as_string())
-            log.info(
+            log.debug(
                 "Email sent successfully (from=%s, to=%s, subject=%s)",
                 self.config.from_,
                 self.config.to,
