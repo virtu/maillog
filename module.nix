@@ -56,16 +56,9 @@ in
     ];
 
     environment.systemPackages = [
-      # maillog module
-      # pkgs.python3.withPackages
-      # (ps: [ flake.packages.${pkgs.stdenv.hostPlatform.system}.maillog ])
-      # pkgs.python3.withPackages
-      # (ps: [ maillog ])
-      # maillog-cli script
       (pkgs.python3.withPackages
         (ps: [ flake.packages.${pkgs.stdenv.hostPlatform.system}.maillog ])
       )
-      flake.packages.${pkgs.stdenv.hostPlatform.system}.maillog-cli
     ];
 
     systemd.services.maillog = {

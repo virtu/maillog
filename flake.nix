@@ -21,12 +21,6 @@
       packages = {
         maillog = mkPoetryApplication {
           projectDir = ./.;
-          # python = pkgs.python312;
-        };
-        maillog-cli = mkPoetryApplication {
-          projectDir = ./.;
-          mainProgram = "maillog-cli";
-          python = pkgs.python312;
         };
         default = self.packages.${system}.maillog;
       };
