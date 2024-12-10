@@ -5,7 +5,7 @@ import smtplib
 from dataclasses import dataclass
 from email.mime.text import MIMEText
 
-from maillog.cli.maillogd import EmailConfig
+from maillog.daemon import EmailConfig
 
 
 @dataclass
