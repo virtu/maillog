@@ -42,7 +42,7 @@ class APISocket:
 
     def accept(self):
         """Accept connection from client."""
-        conn, _ = self._socket.accept()
+        conn, _ = self._socket.accept()  # pylint: disable=no-member
         return APISocket(_socket=conn)
 
     def close(self):

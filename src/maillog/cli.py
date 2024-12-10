@@ -20,11 +20,8 @@ def main():
 
     args = parser.parse_args()
 
-    log_level = "DEBUG"
-
     log.basicConfig(
-        # level=conf.log_level,
-        level=log_level,
+        level="INFO",
         format="%(asctime)s | %(levelname)-8s | %(message)s",
         datefmt="%Y-%m-%dT%H:%M:%SZ",
     )

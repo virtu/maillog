@@ -20,7 +20,7 @@ class MaillogEvent:
     process_name: str = field(
         init=False, default_factory=lambda: os.path.basename(sys.argv[0])
     )
-    process_id: int = field(init=False, default_factory=lambda: os.getpid())
+    process_id: int = field(init=False, default_factory=os.getpid)
     timestamp: str = field(
         init=False,
         default_factory=lambda: dt.datetime.strftime(

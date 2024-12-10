@@ -1,6 +1,5 @@
 """Module implementing formatter for maillog events."""
 
-import logging as log
 from collections import defaultdict
 from dataclasses import dataclass
 
