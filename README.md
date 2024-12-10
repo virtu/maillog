@@ -4,7 +4,7 @@ A simple python mail logging framework, consisting of:
 - `maillogd`, a daemon that accept and stores log events via a simple API.
   The daemon sends daily summary emails with all events logged on a given day.
 - `maillog`, a python package that simplifies email logging via python. `maillog`
-  implements the `maillogd` API and abstracts it using a simple interface:
+  implements the maillog API and abstracts it using a simple interface:
 
   ```python
   import maillog
@@ -39,7 +39,7 @@ services.maillog = {
   # email configuration
   schedule = "23:00";         # time [UTC] when to send daily summary emails
   from = "maillog@acme.com";  # sender
-  to = "alerts@acme";         # recipient
+  to = "alerts@acme.com";     # recipient
   server = "smtp.acme.com";   # SMTP server
   port = 587;                 # SMTP port
   username = "maillog-user";  # SMTP account username
