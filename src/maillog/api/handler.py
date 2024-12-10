@@ -35,13 +35,11 @@ class RequestHandler:
         client_socket: APISocket,
     ):
         """Handle send request from client."""
-
         event = request.event
         log.debug("Received APISubmitEventRequest with event %s", event)
         with EventBuffer() as buf:
             buf.insert(event)
         log.info('Received event from client (preview: "%s")', event.message[:20])
-
         response = messages.APISubmitEventResponse(success=True)
         client_socket.send(response)
 

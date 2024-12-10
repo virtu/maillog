@@ -27,7 +27,8 @@ class APIServer(threading.Thread):
         """
         Start the API server.
 
-        This function is called by the Threading class's start method.
+        This function is called by the Threading class's start method. Requests
+        are handed off to the RequestHandler class.
         """
         log.info("Started %s thread.", self.__class__.__name__)
         while True:

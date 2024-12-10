@@ -1,5 +1,5 @@
 {
-  description = "A Bitcoin DNS seeder supporting all network types";
+  description = "A simple python email logging library.";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
