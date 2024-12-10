@@ -40,6 +40,7 @@ class RequestHandler:
         log.debug("Received APISubmitEventRequest with event %s", event)
         with EventBuffer() as buf:
             buf.insert(event)
+        log.info('Received event from client (preview: "%s")', event.message[:20])
 
         response = messages.APISubmitEventResponse(success=True)
         client_socket.send(response)
@@ -54,5 +55,6 @@ class RequestHandler:
         """
         with EventBuffer() as buf:
             events = buf.get_all_events()
+        log.info("Received status request from client. Sending %d events.", len(events))
         response = messages.APIGetStatusResponse(success=True, events=events)
         client_socket.send(response)

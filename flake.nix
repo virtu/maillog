@@ -19,7 +19,7 @@
     in
     {
       packages = {
-        maillogd = mkPoetryApplication {
+        maillog = mkPoetryApplication {
           projectDir = ./.;
           mainProgram = "maillogd";
         };
