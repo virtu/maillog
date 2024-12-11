@@ -14,20 +14,38 @@
     nixosModules.maillog = import ./module.nix self;
   } // flake-utils.lib.eachDefaultSystem (system:
     let
-      pkgs = nixpkgs.legacyPackages.${system};
+      # Define a base pkgs without overlays
+      pkgs = import nixpkgs { inherit system; };
+      # Define overlay for setting custom python version
       inherit (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; }) mkPoetryApplication;
+      overlays = [
+        (final: prev: {
+          maillog = { python }:
+            mkPoetryApplication {
+              projectDir = ./.;
+              inherit python;
+            };
+        })
+      ];
+      pkgsWithOverlays = import nixpkgs {
+        inherit system;
+        overlays = overlays;
+      };
     in
     {
+      # Export overlays so that importing flakes can use them
+      overlays = overlays;
+
       packages = {
-        maillog = mkPoetryApplication {
-          projectDir = ./.;
-        };
+        # Create default package using system's python version
+        maillog = pkgsWithOverlays.maillog { python = pkgsWithOverlays.python3; };
         default = self.packages.${system}.maillog;
       };
 
-      devShells.default = pkgs.mkShell {
+      devShells.default = pkgsWithOverlays.mkShell {
         inputsFrom = [ self.packages.${system}.default ];
-        packages = with pkgs; [ poetry self.packages.${system}.default ];
+        packages = with pkgsWithOverlays; [ poetry self.packages.${system}.default ];
       };
-    });
+    }
+  );
 }
