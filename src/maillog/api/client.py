@@ -10,20 +10,20 @@ from .socket import APISocket
 
 def info(msg: str):
     """Log message via regular logging framework and maillog using info level."""
-    log.info(msg)
+    log.info("[via maillog] %s", msg)
     _send(msg, "INFO")
 
 
 def warning(msg: str):
     """Log message via regular logging framework and maillog using warning level."""
-    log.warning(msg)
+    log.warning("[via maillog] %s", msg)
     _send(msg, "WARNING")
 
 
-def error(message: str):
+def error(msg: str):
     """Log message via regular logging framework and maillog using error level."""
-    log.error(message)
-    _send(message, "ERROR")
+    log.error("[via maillog] %s", msg)
+    _send(msg, "ERROR")
 
 
 def _send(msg: str, log_level: str):
