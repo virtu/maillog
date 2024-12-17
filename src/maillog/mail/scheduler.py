@@ -86,7 +86,6 @@ class MailScheduler(threading.Thread):
             now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
             log.debug("Woke up at %s. Trying to send summary mail...", now)
             self.send_summary_mail()
-            log.debug("Sent summary email.")
 
     def send_summary_mail(self):
         """Format and send summary email."""
@@ -94,6 +93,9 @@ class MailScheduler(threading.Thread):
         subject = f"Maillog summary for {hostname} on {dt.datetime.now(dt.timezone.utc).date()}"
         with EventBuffer() as buf:
             events = buf.get_all_events()
+        if not events:
+            log.info("No events to send in summary email.")
+            return
         body = EventFormatter.pretty_print(events)
         try:
             self.mailer.send(subject, body)
